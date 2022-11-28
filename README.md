@@ -18,5 +18,5 @@ DB_PORT=
 ```
 go mod tidy
 go mod download
-go run main.go
+go run main.go --dryrun=true // check records without running the update
 ```
