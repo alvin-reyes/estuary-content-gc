@@ -62,9 +62,9 @@ func runCleanup(dryRun *bool) {
 
 	fmt.Println("Running through ", len(*results), " results")
 	for _, result := range *results {
-		fmt.Println("Checking ", result.Host, result.ID)
 
 		if result.Host == "shuttle-3.estuary.tech" { // shuttle-3 don't exist anymore. don't even try
+			fmt.Println("Record: ", result.Host, result.ID, "SHUTTLE-3_DOES_NOT_EXIST_ANYMORE")
 			continue
 		}
 
@@ -75,17 +75,17 @@ func runCleanup(dryRun *bool) {
 		res, err := client.Do(req)
 
 		if err != nil { // skip if error
-			fmt.Println(err)
+			fmt.Println("Record: ", result.Host, result.ID, err, "ERROR_ON_SHUTTLE_REQUES_CHECK")
 			continue
 		}
-		fmt.Println("Get StatusCode: ", res.StatusCode)
 		if res.StatusCode != http.StatusOK || result.Host == "shuttle-3.estuary.tech" { // mark it!
-			fmt.Println("Marking " + result.ID + " " + result.Host)
+			fmt.Println("Record: ", result.Host, result.ID, res.StatusCode, "MARK_AS_FAILED")
 			countNumberOfMarkedForDeletion++
 			if !*dryRun {
 				//DB.Raw("update contents set pinning = false, failed = true where id = ?", result.ID)
 			}
 		} else {
+			fmt.Println("Record: ", result.Host, result.ID, res.StatusCode, "GOOD")
 			countNumberOfValidContent++
 		}
 	}
