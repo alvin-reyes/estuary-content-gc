@@ -63,11 +63,16 @@ func runCleanup(dryRun *bool) {
 	fmt.Println("Running through ", len(*results), " results")
 	for _, result := range *results {
 		fmt.Println("Checking ", result.Host, result.ID)
-		response, err := http.Get("https://" + result.Host + ShuttleCheckEndpoint + result.ID)
+		client := &http.Client{}
+		req, _ := http.NewRequest("GET", "https://"+result.Host+ShuttleCheckEndpoint+result.ID, nil)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+viper.Get("API_KEY").(string))
+		res, err := client.Do(req)
 		if err != nil {
 			fmt.Println(err)
 		}
-		if response.StatusCode != http.StatusOK || result.Host == "shuttle-3.estuary.tech" { // mark it!
+		fmt.Println("Get StatusCode: ", res.StatusCode)
+		if res.StatusCode != http.StatusOK || result.Host == "shuttle-3.estuary.tech" { // mark it!
 			fmt.Println("Marking " + result.ID + " " + result.Host)
 			countNumberOfMarkedForDeletion++
 			if !*dryRun {
