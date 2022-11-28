@@ -1,4 +1,4 @@
-# Estuary Content Table Clean up
+# Estuary Data cleanup
 
 - Queries old data and check pinning status
 - Check shuttle hosts if content is available
