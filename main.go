@@ -43,11 +43,11 @@ func main() {
 		panic("failed to connect database")
 	}
 
-	runCleanup(DryRun)
+	runCleanup()
 
 }
 
-func runCleanup(dryRun *bool) {
+func runCleanup() {
 
 	var countNumberOfMarkedForDeletion int64
 	var countNumberOfValidContent int64
