@@ -63,11 +63,17 @@ func runCleanup(dryRun *bool) {
 	fmt.Println("Running through ", len(*results), " results")
 	for _, result := range *results {
 		fmt.Println("Checking ", result.Host, result.ID)
+
+		if result.Host == "shuttle-3.estuary.tech" { // shuttle-3 don't exist anymore. don't even try
+			continue
+		}
+
 		client := &http.Client{}
 		req, _ := http.NewRequest("GET", "https://"+result.Host+ShuttleCheckEndpoint+result.ID, nil)
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+viper.Get("API_KEY").(string))
 		res, err := client.Do(req)
+
 		if err != nil {
 			fmt.Println(err)
 		}
