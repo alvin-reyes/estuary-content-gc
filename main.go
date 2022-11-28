@@ -74,8 +74,9 @@ func runCleanup(dryRun *bool) {
 		req.Header.Set("Authorization", "Bearer "+viper.Get("API_KEY").(string))
 		res, err := client.Do(req)
 
-		if err != nil {
+		if err != nil { // skip if error
 			fmt.Println(err)
+			continue
 		}
 		fmt.Println("Get StatusCode: ", res.StatusCode)
 		if res.StatusCode != http.StatusOK || result.Host == "shuttle-3.estuary.tech" { // mark it!
