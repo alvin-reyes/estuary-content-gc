@@ -12,7 +12,7 @@ DB_HOST=
 DB_USER=
 DB_PASS=
 DB_PORT=
-API_KEY
+API_KEY=
 ```
 
 # Install run
