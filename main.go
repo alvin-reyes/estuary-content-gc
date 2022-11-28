@@ -17,12 +17,13 @@ type ToCleanUp struct {
 
 var (
 	DB                   *gorm.DB
+	DryRun               *bool
 	ShuttleCheckEndpoint = "/content/read/" // returns 404 if not available, 200 if content is available.
 )
 
 func main() {
 
-	dryRun := flag.Bool("dryrun", true, "dry run to check stats before cleaning up")
+	DryRun = flag.Bool("dryrun", true, "dry run to check stats before cleaning up")
 	viper.SetConfigFile(".env")
 	err := viper.ReadInConfig()
 
@@ -42,7 +43,7 @@ func main() {
 		panic("failed to connect database")
 	}
 
-	runCleanup(dryRun)
+	runCleanup(DryRun)
 
 }
 
@@ -65,6 +66,7 @@ func runCleanup(dryRun *bool) {
 
 		if result.Host == "shuttle-3.estuary.tech" { // shuttle-3 don't exist anymore. don't even try
 			fmt.Println("Record: ", result.Host, result.ID, "SHUTTLE-3_DOES_NOT_EXIST_ANYMORE")
+			markIt(result.ID)
 			continue
 		}
 
@@ -78,12 +80,10 @@ func runCleanup(dryRun *bool) {
 			fmt.Println("Record: ", result.Host, result.ID, err, "ERROR_ON_SHUTTLE_REQUES_CHECK")
 			continue
 		}
-		if res.StatusCode != http.StatusOK || result.Host == "shuttle-3.estuary.tech" { // mark it!
+		if res.StatusCode != http.StatusOK { // mark it!
 			fmt.Println("Record: ", result.Host, result.ID, res.StatusCode, "MARK_AS_FAILED")
 			countNumberOfMarkedForDeletion++
-			if !*dryRun {
-				//DB.Raw("update contents set pinning = false, failed = true where id = ?", result.ID)
-			}
+			markIt(result.ID)
 		} else {
 			fmt.Println("Record: ", result.Host, result.ID, res.StatusCode, "GOOD")
 			countNumberOfValidContent++
@@ -92,4 +92,10 @@ func runCleanup(dryRun *bool) {
 
 	fmt.Println("Number of marked for deletion: ", countNumberOfMarkedForDeletion)
 	fmt.Println("Number of valid content: ", countNumberOfValidContent)
+}
+
+func markIt(contentId string) {
+	if !*DryRun {
+		DB.Raw("update contents set pinning = false, failed = true where id = ?", contentId)
+	}
 }
