@@ -67,8 +67,7 @@ func runCleanup(dryRun *bool) {
 		if err != nil {
 			fmt.Println(err)
 		}
-		fmt.Println(response.StatusCode)
-		if response.StatusCode != http.StatusOK { // mark it!
+		if response.StatusCode != http.StatusOK || result.Host == "shuttle-3.estuary.tech" { // mark it!
 			fmt.Println("Marking " + result.ID + " " + result.Host)
 			countNumberOfMarkedForDeletion++
 			if !*dryRun {
