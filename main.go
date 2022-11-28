@@ -96,6 +96,6 @@ func runCleanup(dryRun *bool) {
 
 func markIt(contentId string) {
 	if !*DryRun {
-		DB.Raw("update contents set pinning = false, failed = true where id = ?", contentId)
+		DB.Raw("update contents set pinning = false, active=false, failed = true where id = ?", contentId)
 	}
 }
