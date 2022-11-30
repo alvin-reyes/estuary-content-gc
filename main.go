@@ -1,13 +1,11 @@
 package main
 
 import (
+	"content-update-gc/content_gc"
 	"flag"
-	"fmt"
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"net/http"
-	"time"
 )
 
 type ToCleanUp struct {
@@ -43,59 +41,12 @@ func main() {
 		panic("failed to connect database")
 	}
 
-	runCleanup()
-
-}
-
-func runCleanup() {
-
-	var countNumberOfMarkedForDeletion int64
-	var countNumberOfValidContent int64
-	results := &[]ToCleanUp{}
-	currentTime := time.Now()
-	last3Month := currentTime.AddDate(0, -3, 0)
-	timeLayout := "2006-01-02"
-	stringDate := last3Month.Format(timeLayout)
-
-	fmt.Println("Running cleanup for content marked for deletion before: ", stringDate)
-
-	DB.Raw("select s.host, c.id from contents as c, shuttles as s where c.location = s.handle and (c.created_at between '2000-01-01' and ?) and c.pinning group by s.host, c.id", stringDate).Scan(results)
-
-	fmt.Println("Running through ", len(*results), " results")
-	for _, result := range *results {
-
-		if result.Host == "shuttle-3.estuary.tech" { // shuttle-3 don't exist anymore. don't even try
-			fmt.Println("Record: ", result.Host, result.ID, "SHUTTLE-3_DOES_NOT_EXIST_ANYMORE")
-			markIt(result.ID)
-			continue
-		}
-
-		client := &http.Client{}
-		req, _ := http.NewRequest("GET", "https://"+result.Host+ShuttleCheckEndpoint+result.ID, nil)
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", "Bearer "+viper.Get("API_KEY").(string))
-		res, err := client.Do(req)
-
-		if err != nil { // skip if error
-			fmt.Println("Record: ", result.Host, result.ID, err, "ERROR_ON_SHUTTLE_REQUES_CHECK")
-			continue
-		}
-		if res.StatusCode != http.StatusOK { // mark it!
-			fmt.Println("Record: ", result.Host, result.ID, res.StatusCode, "MARK_AS_FAILED")
-			countNumberOfMarkedForDeletion++
-			markIt(result.ID)
-		} else {
-			fmt.Println("Record: ", result.Host, result.ID, res.StatusCode, "GOOD")
-			countNumberOfValidContent++
-		}
+	contentGc := content_gc.ContentGc{
+		BaseGC: content_gc.BaseGC{
+			DB: DB,
+		},
+		DryRun: DryRun,
 	}
+	contentGc.Run() // run it
 
-	fmt.Println("Number of marked for deletion: ", countNumberOfMarkedForDeletion)
-	fmt.Println("Number of valid content: ", countNumberOfValidContent)
-}
-
-func markIt(contentId string) {
-	if !*DryRun {
-		DB.Raw("update contents set pinning = false, active=false, failed = true where id = ?", contentId)
-	}
 }
