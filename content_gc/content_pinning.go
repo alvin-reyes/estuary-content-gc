@@ -17,6 +17,7 @@ type ToCleanUp struct {
 	ID   string
 }
 
+// A method of the ContentGc struct.
 func (c ContentGc) Run() {
 
 	var countNumberOfMarkedForDeletion int64
@@ -47,7 +48,7 @@ func (c ContentGc) Run() {
 		res, err := client.Do(req)
 
 		if err != nil { // skip if error
-			fmt.Println("Record: ", result.Host, result.ID, err, "ERROR_ON_SHUTTLE_REQUES_CHECK")
+			fmt.Println("Record: ", result.Host, result.ID, err, "ERROR_ON_SHUTTLE_REQUEST_CHECK")
 			continue
 		}
 		if res.StatusCode != http.StatusOK { // mark it!
@@ -63,6 +64,8 @@ func (c ContentGc) Run() {
 	fmt.Println("Number of marked for deletion: ", countNumberOfMarkedForDeletion)
 	fmt.Println("Number of valid content: ", countNumberOfValidContent)
 }
+
+// Marking the content as failed.
 
 func (c ContentGc) markItAsFail(contentId string) {
 	if !*c.DryRun {
