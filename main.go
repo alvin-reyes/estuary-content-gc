@@ -8,11 +8,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type ToCleanUp struct {
-	Host string
-	ID   string
-}
-
 var (
 	DB                   *gorm.DB
 	DryRun               *bool
